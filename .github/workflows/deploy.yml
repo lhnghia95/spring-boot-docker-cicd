@@ -38,26 +38,30 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest
             ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:${{ github.sha }}
 
-     - name: Triển khai lên DevOps Classroom
-  run: |
-    REPO="${{ secrets.DOCKER_USERNAME }}/spring-boot-app"
-    TAG="latest"
-    SLOT=2
-    CONTAINER_PORT=8080
-    URL="${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=$TAG&slot=$SLOT&containerPort=$CONTAINER_PORT"
-    
-    echo "Gửi yêu cầu đến: $URL"
-    
-    # Tăng timeout lên 180 giây (3 phút) và thêm verbose để debug
-    RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST --max-time 180 -v "$URL" 2>&1)
-    BODY=$(echo "$RESPONSE" | sed '$d')
-    CODE=$(echo "$RESPONSE" | tail -n1)
-    
-    echo "HTTP code: $CODE"
-    echo "Response body: $BODY"
-    
-    if [[ ! "$CODE" =~ ^[0-9]+$ ]] || [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-      echo "Deploy thất bại"
-      exit 1
-    fi
-    echo "Deploy thành công!"
+      - name: Triển khai lên DevOps Classroom
+        run: |
+          REPO="${{ secrets.DOCKER_USERNAME }}/spring-boot-app"
+          TAG="latest"
+          SLOT=2
+          CONTAINER_PORT=8080
+          
+          URL="${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=$TAG&slot=$SLOT&containerPort=$CONTAINER_PORT"
+          
+          echo "Gửi yêu cầu đến: $URL"
+          
+          # Tăng timeout và debug
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST --max-time 180 -v "$URL" 2>&1)
+          
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          CODE=$(echo "$RESPONSE" | tail -n1)
+          
+          echo "HTTP code: $CODE"
+          echo "Response body:"
+          echo "$BODY"
+          
+          if [[ ! "$CODE" =~ ^[0-9]+$ ]] || [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
+            echo "❌ Deploy thất bại"
+            exit 1
+          fi
+          
+          echo "✅ Deploy thành công!"
