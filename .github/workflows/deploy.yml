@@ -46,7 +46,7 @@ jobs:
           CONTAINER_PORT=8080
           URL="${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=$TAG&slot=$SLOT&containerPort=$CONTAINER_PORT"
           echo "Gửi yêu cầu đến: $URL"
-          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST --max-time 30 "$URL")
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST --max-time 120 "$URL")
           BODY=$(echo "$RESPONSE" | sed '$d')
           CODE=$(echo "$RESPONSE" | tail -n1)
           echo "HTTP code: $CODE"
