@@ -7,5 +7,10 @@ RUN mvn package -DskipTests
 
 FROM eclipse-temurin:17-jdk-alpine
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 80
-ENTRYPOINT ["java", "-jar", "/app.jar", "--server.port=80"]
+
+# Sửa ở đây
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+
+# Hoặc nếu muốn giữ --server.port thì viết rõ
+# ENTRYPOINT ["java", "-jar", "/app.jar", "--server.port=8080"]
