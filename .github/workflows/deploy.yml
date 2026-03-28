@@ -38,25 +38,33 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest
             ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:${{ github.sha }}
 
-      - name: Deploy to slot S1 via webhook
-        run: |
-          REPO="${{ secrets.DOCKER_USERNAME }}/spring-boot-app"
-          TAG="${{ github.sha }}"
-          SLOT=1
-          CONTAINER_PORT=8080
-          URL="${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=$TAG&slot=$SLOT&containerPort=$CONTAINER_PORT"
-          echo "Gửi yêu cầu đến: $URL"
-          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST --max-time 120 "$URL")
-          BODY=$(echo "$RESPONSE" | sed '$d')
-          CODE=$(echo "$RESPONSE" | tail -n1)
-          echo "HTTP code: $CODE"
-          echo "Phản hồi: $BODY"
-          if [[ ! "$CODE" =~ ^[0-9]+$ ]]; then
-            echo "Lỗi: không nhận được mã HTTP hợp lệ. Phản hồi: $CODE"
-            exit 1
-          fi
-          if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-            echo "Deploy thất bại với mã HTTP $CODE"
-            exit 1
-          fi
-          echo "Deploy thành công!"
+      - name: Triển khai lên DevOps Classroom
+          run: |
+            REPO="nghia952004/spring-boot-app"
+            TAG="latest"
+            SLOT=5
+            CONTAINER_PORT=80
+
+            URL="${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=$TAG&slot=$SLOT&containerPort=$CONTAINER_PORT"
+
+            echo "Gửi yêu cầu đến: $URL"
+
+            RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST --max-time 60 "$URL")
+
+            BODY=$(echo "$RESPONSE" | sed '$d')
+            CODE=$(echo "$RESPONSE" | tail -n1)
+
+            echo "HTTP code: $CODE"
+
+            if [[ ! "$CODE" =~ ^[0-9]+$ ]]; then
+              echo "Không nhận được HTTP code hợp lệ"
+              exit 1
+            fi
+
+            if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
+              echo "Deploy thất bại"
+              echo "$BODY"
+              exit 1
+            fi
+
+            echo "Deploy thành công!"
