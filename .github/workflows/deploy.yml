@@ -42,12 +42,11 @@ jobs:
         run: |
           REPO="${{ secrets.DOCKER_USERNAME }}/spring-boot-app"
           TAG="latest"
-          SLOT=2
+          SLOT=3
           CONTAINER_PORT=80
           URL="${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=$TAG&slot=$SLOT&containerPort=$CONTAINER_PORT"
           echo "Gửi yêu cầu đến: $URL"
 
-          # Tạm thời tắt exit-on-error để xử lý curl
           set +e
           RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST --max-time 60 "$URL" 2>&1)
           CURL_EXIT=$?
@@ -56,7 +55,6 @@ jobs:
           CODE=$(echo "$RESPONSE" | tail -n1)
           echo "HTTP code: $CODE"
 
-          # Nếu curl timeout (exit 28) hoặc HTTP 524 (Cloudflare timeout) -> coi như thành công
           if [ $CURL_EXIT -eq 28 ]; then
             echo "Curl timeout (exit 28). Request likely reached server. Treating as success."
             exit 0
