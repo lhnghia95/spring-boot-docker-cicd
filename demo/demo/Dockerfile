@@ -1,12 +1,14 @@
-FROM maven:3-eclipse-temurin-17-alpine AS build
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src ./src
-RUN mvn package -DskipTests
+# Sử dụng Nginx bản nhẹ nhất để chạy web tĩnh
+FROM nginx:alpine
 
-FROM eclipse-temurin:17-jdk-alpine
-COPY --from=build /app/target/*.jar app.jar
+# Xóa các file mặc định của Nginx
+RUN rm -rf /usr/share/nginx/html/*
 
+# Copy toàn bộ file code (HTML, CSS...) vào thư mục web của Nginx
+COPY . /usr/share/nginx/html/
+
+# Mở port 80 (bắt buộc theo yêu cầu của hệ thống server)
 EXPOSE 80
-ENTRYPOINT ["java", "-jar", "/app.jar", "--server.port=80"]
+
+# Chạy Nginx
+CMD ["nginx", "-g", "daemon off;"]
